@@ -9,7 +9,7 @@ interface GraphState {
   collapsedGroups: Set<string>;
   toggleGroup: (groupId: string) => void;
   getVisibleGraph: () => { nodes: Node[], edges: Edge[] };
-  addEdgeNode: (sourceId: string | null, targetId: string | null, nodeType: string, data: any, groupId?: string | null) => Promise<void>;
+  addEdgeNode: (sourceId: string | null, targetId: string | null, nodeType: string, data: any, groupId?: string | null, wrapInGroup?: boolean) => Promise<void>;
 }
 
 export const useGraphStore = create<GraphState>((set, get) => ({
@@ -42,14 +42,23 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       });
     });
 
-    const visibleNodes: Node[] = fullNodes.filter(node => {
-        // If a node is a child, it is ONLY visible if its parent group is NOT collapsed
-        const groupId = childToGroup[node.id];
-        if (groupId && collapsedGroups.has(groupId)) {
-            return false; 
+    const getHighestCollapsedAncestor = (nodeId: string): string | null => {
+      let currentId = nodeId;
+      let highestCollapsed: string | null = null;
+      while (childToGroup[currentId]) {
+        currentId = childToGroup[currentId];
+        if (collapsedGroups.has(currentId)) {
+          highestCollapsed = currentId;
         }
+      }
+      return highestCollapsed;
+    };
 
-        // We ALWAY render the node.type === 'group'. Its bounding box rendering will react to collapsedGroup states internally.
+    const visibleNodes: Node[] = fullNodes.filter(node => {
+        // If ANY ancestor is collapsed, hide this node.
+        if (getHighestCollapsedAncestor(node.id)) {
+            return false;
+        }
         return true;
     });
 
@@ -59,15 +68,15 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     fullEdges.forEach(edge => {
         // Find effective source/target based on collapse state
         let effectiveSource = edge.source;
-        const sourceGroup = childToGroup[edge.source];
-        if (sourceGroup && collapsedGroups.has(sourceGroup)) {
-            effectiveSource = sourceGroup;
+        const highestCollapsedSource = getHighestCollapsedAncestor(edge.source);
+        if (highestCollapsedSource) {
+            effectiveSource = highestCollapsedSource;
         }
 
         let effectiveTarget = edge.target;
-        const targetGroup = childToGroup[edge.target];
-        if (targetGroup && collapsedGroups.has(targetGroup)) {
-            effectiveTarget = targetGroup;
+        const highestCollapsedTarget = getHighestCollapsedAncestor(edge.target);
+        if (highestCollapsedTarget) {
+            effectiveTarget = highestCollapsedTarget;
         }
 
         // Internal edge hidden within collapsed group
@@ -93,13 +102,16 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     });
 
     // Run determinist dagre layout upon our flattened logically visible node graph
-  // Feeding the mapping configurations accurately
+    // Feeding the mapping configurations accurately
     return getLayoutedElements(visibleNodes, visibleEdges, 'LR', collapsedGroups, childToGroup);
   },
 
-  addEdgeNode: async (sourceId: string | null, targetId: string | null, nodeType: string, data: any, groupId?: string | null) => {
+  addEdgeNode: async (sourceId: string | null, targetId: string | null, nodeType: string, data: any, groupId?: string | null, wrapInGroup?: boolean) => {
     // Generate IDs early for payload processing
     const newNodeId = `node-${Date.now()}`;
+    const newGroupNodeId = `group-${Date.now()}`;
+
+    // Create the actual new node
     const newNode = {
       id: newNodeId,
       type: nodeType,
@@ -107,6 +119,17 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       data: { ...data, label: data.label || `New ${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)}` }
     };
     
+    // Create an optional wrapping group
+    const newGroupNode = wrapInGroup ? {
+      id: newGroupNodeId,
+      type: 'group',
+      position: { x: 0, y: 0 },
+      data: { label: `${newNode.data.label} Group`, children: [newNodeId] }
+    } : null;
+
+    // Determine the ID to connect edges to
+    // If we wrap it, edges point to the new node still (true Airflow group style where edges enter children)
+    // Wait, in this logic, if we wrap it, we still connect edges directly to the new node, and the Group wraps the node visually.
     const addedEdges: Edge[] = [];
     if (sourceId) {
       addedEdges.push({ id: `e-${sourceId}-${newNodeId}`, source: sourceId, target: newNodeId, type: 'airflow' });
@@ -116,18 +139,13 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }
 
     // --- Backend Integration Stub ---
-    // Simulate sending an API request to a backend endpoint and waiting for it to be structurally saved.
-    // Replace this block with your actual `axios.post` or `fetch` logic.
     try {
-      console.log('Sending structured payload to backend...', { newNode, edges: addedEdges });
-      
-      // Simulating a 500ms network delay for processing...
+      console.log('Sending structured payload to backend...', { newNode, newGroupNode, edges: addedEdges });
       await new Promise(resolve => setTimeout(resolve, 500));
-      
       console.log('Payload successfully saved to backend!');
     } catch (error) {
       console.error('Failed to sync graph state to the backend database:', error);
-      return; // Do not apply local state updates if backend fails
+      return; 
     }
     // --------------------------------
 
@@ -142,6 +160,11 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       newEdges.push(...addedEdges);
       
       let newNodes = [...state.fullNodes];
+      
+      if (newGroupNode) {
+        newNodes.push(newGroupNode as Node);
+      }
+
       if (groupId) {
         newNodes = newNodes.map(n => {
           if (n.id === groupId) {
@@ -149,7 +172,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
               ...n,
               data: {
                 ...n.data,
-                children: [...(n.data.children || []), newNodeId]
+                // Add either the group ID or the node ID depending on what we created
+                children: [...((n.data.children as string[]) || []), wrapInGroup ? newGroupNodeId : newNodeId]
               }
             };
           }

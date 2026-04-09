@@ -11,24 +11,25 @@ export function AddNodeModal() {
   const [formData, setFormData] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [keepInGroup, setKeepInGroup] = useState<boolean>(true);
+  const [wrapInGroup, setWrapInGroup] = useState<boolean>(false);
 
   // Reset state when modal opens
   useEffect(() => {
     if (addNodeModalOpen) {
       setKeepInGroup(true);
+      setWrapInGroup(false);
     }
   }, [addNodeModalOpen]);
 
   if (!addNodeModalOpen || !addNodeSourceTarget) return null;
 
   // Determine group relationships
-  const sourceGroup = addNodeSourceTarget.source 
-    ? fullNodes.find(n => n.type === 'group' && n.data?.children?.includes(addNodeSourceTarget.source)) 
-    : null;
+  const getParentGroup = (nodeId: string) => {
+    return fullNodes.find(n => n.type === 'group' && (n.data?.children as string[])?.includes(nodeId));
+  };
 
-  const targetGroup = addNodeSourceTarget.target
-    ? fullNodes.find(n => n.type === 'group' && n.data?.children?.includes(addNodeSourceTarget.target))
-    : null;
+  const sourceGroup = addNodeSourceTarget.source ? getParentGroup(addNodeSourceTarget.source!) : null;
+  const targetGroup = addNodeSourceTarget.target ? getParentGroup(addNodeSourceTarget.target!) : null;
 
   const isBetweenNodes = !!addNodeSourceTarget.source && !!addNodeSourceTarget.target;
   const isAddChild = !!addNodeSourceTarget.source && !addNodeSourceTarget.target;
@@ -39,8 +40,15 @@ export function AddNodeModal() {
       finalGroupId = sourceGroup.id;
     }
   } else if (isAddChild) {
-    if (sourceGroup && keepInGroup) {
-      finalGroupId = sourceGroup.id;
+    if (sourceGroup) {
+      // If we keep in the direct parent group
+      if (keepInGroup) {
+        finalGroupId = sourceGroup.id;
+      } else {
+        // If we don't keep in the direct parent group, we still need to be in the grandparent group (if any)!
+        const grandparentGroup = getParentGroup(sourceGroup.id);
+        finalGroupId = grandparentGroup ? grandparentGroup.id : null;
+      }
     }
   }
 
@@ -48,7 +56,7 @@ export function AddNodeModal() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    await addEdgeNode(addNodeSourceTarget.source, addNodeSourceTarget.target, nodeType, formData, finalGroupId);
+    await addEdgeNode(addNodeSourceTarget.source, addNodeSourceTarget.target, nodeType, formData, finalGroupId, wrapInGroup);
     
     setIsSubmitting(false);
     handleClose();
@@ -102,6 +110,21 @@ export function AddNodeModal() {
                 />
               </div>
 
+              {nodeType !== 'group' && (
+                <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-100 rounded-md">
+                  <input
+                    type="checkbox"
+                    id="wrapInGroup"
+                    checked={wrapInGroup}
+                    onChange={(e) => setWrapInGroup(e.target.checked)}
+                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-slate-300"
+                  />
+                  <label htmlFor="wrapInGroup" className="text-sm font-medium text-emerald-900">
+                    Make this a grouped node (Creates a new Group wrapper)
+                  </label>
+                </div>
+              )}
+
               {isAddChild && sourceGroup && (
                 <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-md">
                   <input
@@ -112,7 +135,7 @@ export function AddNodeModal() {
                     className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-slate-300"
                   />
                   <label htmlFor="keepInGroup" className="text-sm font-medium text-blue-900">
-                    Keep new node inside group: <span className="font-bold">{sourceGroup.data.label}</span>
+                    Keep new node inside group: <span className="font-bold">{sourceGroup.data.label as string}</span>
                   </label>
                 </div>
               )}

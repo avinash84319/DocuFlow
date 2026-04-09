@@ -28,8 +28,8 @@ export function AirflowEdge({
   const { openAddNodeModal } = useUIStore();
   const [isHovered, setIsHovered] = useState(false);
 
-  const originalSource = data?.originalSource || source;
-  const originalTarget = data?.originalTarget || target;
+  const originalSource = (data?.originalSource as string) || source;
+  const originalTarget = (data?.originalTarget as string) || target;
 
   return (
     <>
