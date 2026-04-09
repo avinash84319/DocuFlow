@@ -1,0 +1,16 @@
+{
+  "nodes": [
+    { "id": "1", "type": "api", "position": { "x": 0, "y": 0 }, "data": { "label": "Fetch User Data" } },
+    { "id": "2", "type": "operator", "position": { "x": 0, "y": 0 }, "data": { "label": "Transform Payload" } },
+    { "id": "group1", "type": "group", "position": { "x": 0, "y": 0 }, "data": { "label": "Processing Group", "children": ["c1", "c2"] } },
+    { "id": "c1", "type": "operator", "position": { "x": 0, "y": 0 }, "data": { "label": "Format Data" } },
+    { "id": "c2", "type": "api", "position": { "x": 0, "y": 0 }, "data": { "label": "Save to DB" } },
+    { "id": "3", "type": "operator", "position": { "x": 0, "y": 0 }, "data": { "label": "Finalize" } }
+  ],
+  "edges": [
+    { "id": "e1-2", "source": "1", "target": "2" },
+    { "id": "e2-c1", "source": "2", "target": "c1" },
+    { "id": "ec1-c2", "source": "c1", "target": "c2" },
+    { "id": "ec2-3", "source": "c2", "target": "3" }
+  ]
+}
