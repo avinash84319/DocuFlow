@@ -7,7 +7,7 @@ export function AddNodeModal() {
   const { addEdgeNode, fullNodes } = useGraphStore();
 
   const [step, setStep] = useState<1 | 2>(1);
-  const [nodeType, setNodeType] = useState<'api' | 'operator' | 'group' | 'doc'>('api');
+  const [nodeType, setNodeType] = useState<'api' | 'function' | 'sql' | 'service' | 'event' | 'external' | 'group'>('api');
   const [formData, setFormData] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [keepInGroup, setKeepInGroup] = useState<boolean>(true);
@@ -84,7 +84,7 @@ export function AddNodeModal() {
         <div className="p-6">
           {step === 1 && (
             <div className="grid grid-cols-2 gap-4">
-              {['api', 'operator', 'group', 'doc'].map((type) => (
+              {['api', 'function', 'sql', 'service', 'event', 'external', 'group'].map((type) => (
                 <button
                   key={type}
                   className={`p-4 rounded-lg border-2 text-center transition-all ${nodeType === type ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600'}`}
@@ -153,19 +153,71 @@ export function AddNodeModal() {
                 </div>
               )}
 
-              {nodeType === 'operator' && (
+              {nodeType === 'function' && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Operator Type</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Language</label>
                   <select
                     className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    value={formData.operatorType || ''}
-                    onChange={(e) => setFormData({ ...formData, operatorType: e.target.value })}
+                    value={formData.language || 'typescript'}
+                    onChange={(e) => setFormData({ ...formData, language: e.target.value })}
                   >
-                    <option value="">Select type...</option>
-                    <option value="filter">Filter</option>
-                    <option value="map">Map</option>
-                    <option value="reduce">Reduce</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="go">Go</option>
                   </select>
+                </div>
+              )}
+
+              {nodeType === 'sql' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Query</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    value={formData.query || ''}
+                    onChange={(e) => setFormData({ ...formData, query: e.target.value })}
+                    placeholder="SELECT * FROM table"
+                  />
+                </div>
+              )}
+
+              {nodeType === 'service' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Service Name</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    value={formData.serviceName || ''}
+                    onChange={(e) => setFormData({ ...formData, serviceName: e.target.value })}
+                    placeholder="e.g., User Service"
+                  />
+                </div>
+              )}
+
+              {nodeType === 'event' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Topic</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    value={formData.topic || ''}
+                    onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                    placeholder="e.g., user.created"
+                  />
+                </div>
+              )}
+
+              {nodeType === 'external' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">System Name</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    value={formData.systemName || ''}
+                    onChange={(e) => setFormData({ ...formData, systemName: e.target.value })}
+                    placeholder="e.g., Salesforce, Stripe"
+                  />
                 </div>
               )}
             </form>

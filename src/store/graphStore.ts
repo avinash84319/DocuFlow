@@ -10,6 +10,8 @@ interface GraphState {
   toggleGroup: (groupId: string) => void;
   getVisibleGraph: () => { nodes: Node[], edges: Edge[] };
   addEdgeNode: (sourceId: string | null, targetId: string | null, nodeType: string, data: any, groupId?: string | null, wrapInGroup?: boolean) => Promise<void>;
+  editNodeDocs: (nodeId: string, docsContent: string) => void;
+  updateNodeData: (nodeId: string, data: any) => void;
 }
 
 export const useGraphStore = create<GraphState>((set, get) => ({
@@ -25,6 +27,40 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       newCollapsed.add(groupId);
     }
     return { collapsedGroups: newCollapsed };
+  }),
+
+  updateNodeData: (nodeId: string, data: any) => set((state) => {
+    return {
+      fullNodes: state.fullNodes.map(n => {
+        if (n.id === nodeId) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              ...data
+            }
+          };
+        }
+        return n;
+      })
+    };
+  }),
+
+  editNodeDocs: (nodeId: string, docsContent: string) => set((state) => {
+    return {
+      fullNodes: state.fullNodes.map(n => {
+        if (n.id === nodeId) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              docs: docsContent
+            }
+          };
+        }
+        return n;
+      })
+    };
   }),
 
   // Returns the computed sub-graph for React Flow natively dynamically reconnecting dagre edges

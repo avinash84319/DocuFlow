@@ -1,16 +1,16 @@
 {
   "nodes": [
-    { "id": "1", "type": "api", "position": { "x": 0, "y": 0 }, "data": { "label": "API Gateway" } },
-    { "id": "group1", "type": "group", "position": { "x": 0, "y": 0 }, "data": { "label": "User Service", "children": ["c1", "c2", "c3"] } },
-    { "id": "c1", "type": "operator", "position": { "x": 0, "y": 0 }, "data": { "label": "Validate Auth" } },
-    { "id": "c2", "type": "api", "position": { "x": 0, "y": 0 }, "data": { "label": "Fetch Profile DB" } },
-    { "id": "c3", "type": "operator", "position": { "x": 0, "y": 0 }, "data": { "label": "Map Response" } },
-    { "id": "3", "type": "api", "position": { "x": 0, "y": 0 }, "data": { "label": "Analytics Sink" } }
+    { "id": "1", "type": "api", "position": { "x": 0, "y": 0 }, "data": { "label": "Create User API", "description": "Entry point for user creation", "docs": { "md": "## Create User\n\nCalls POST /api/users", "editable": true } } },
+    { "id": "group1", "type": "group", "position": { "x": 0, "y": 0 }, "data": { "label": "User Service", "children": ["f1", "f2", "sql1"], "docs": { "md": "Handling user business logic.", "editable": false } } },
+    { "id": "f1", "type": "function", "position": { "x": 0, "y": 0 }, "data": { "label": "Hash Password", "description": "Bcrypt hashing", "language": "typescript", "docs": { "md": "Uses generic library", "editable": true } } },
+    { "id": "f2", "type": "function", "position": { "x": 0, "y": 0 }, "data": { "label": "Save User", "description": "Business saving logic", "code": "save(user);", "docs": { "md": "Business logic", "editable": true } } },
+    { "id": "sql1", "type": "sql", "position": { "x": 0, "y": 0 }, "data": { "label": "Insert User Query", "query": "INSERT INTO users", "docs": { "md": "```sql\nINSERT INTO users (name) VALUES (?);\n```", "editable": true } } },
+    { "id": "db1", "type": "external", "position": { "x": 0, "y": 0 }, "data": { "label": "Users Database", "systemName": "Postgres", "docs": { "md": "External Postgres cluster", "editable": true } } }
   ],
   "edges": [
-    { "id": "e1-c1", "source": "1", "target": "c1" },
-    { "id": "ec1-c2", "source": "c1", "target": "c2" },
-    { "id": "ec2-c3", "source": "c2", "target": "c3" },
-    { "id": "ec3-3", "source": "c3", "target": "3" }
+    { "id": "e1-f1", "source": "1", "target": "f1" },
+    { "id": "ef1-f2", "source": "f1", "target": "f2" },
+    { "id": "ef2-sql1", "source": "f2", "target": "sql1" },
+    { "id": "esql1-db1", "source": "sql1", "target": "db1" }
   ]
 }

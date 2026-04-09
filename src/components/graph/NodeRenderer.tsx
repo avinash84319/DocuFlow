@@ -1,11 +1,14 @@
 import { NodeTypes } from '@xyflow/react';
-import { ApiNode } from '../nodes/ApiNode/ApiNode';
-import { OperatorNode } from '../nodes/OperatorNode/OperatorNode';
+import { ApiNode, FunctionNode, SqlNode, ServiceNode, EventNode, ExternalNode } from '../nodes/actionNodes';
 import { GroupNode } from '../nodes/GroupNode/GroupNode';
 
 // Registry pattern mapping node type strings to actual React components
 export const nodeTypes: NodeTypes = {
   api: ApiNode,
-  operator: OperatorNode,
+  function: FunctionNode,
+  sql: SqlNode,
+  service: ServiceNode,
+  event: EventNode,
+  external: ExternalNode,
   group: GroupNode,
 };

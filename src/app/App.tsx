@@ -12,9 +12,6 @@ function App() {
         <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-emerald-500 tracking-tight">
           DocuFlow
         </h1>
-        <div className="ml-auto text-xs font-semibold text-slate-400 uppercase tracking-widest">
-          Pipeline Editor
-        </div>
       </header>
 
       {/* Main Content Area */}

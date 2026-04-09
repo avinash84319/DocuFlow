@@ -59,9 +59,6 @@ export function GraphCanvas() {
 
   return (
     <div className="relative flex-1 w-full h-full bg-slate-50">
-      <h1 className="absolute top-4 left-4 text-2xl font-bold z-10 text-primary">
-        Graph App
-      </h1>
       
       <button 
         onClick={togglePanel}
