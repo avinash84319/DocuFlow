@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 import { CustomNode } from '../../types/nodeTypes';
 
 export function ApiActionPanel({ node }: { node: CustomNode }) {

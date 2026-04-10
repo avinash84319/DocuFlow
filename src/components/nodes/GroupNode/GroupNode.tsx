@@ -1,8 +1,6 @@
-import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { CustomNodeProps } from '../../../types/nodeTypes';
 import { useGraphStore } from '../../../store/graphStore';
-import { NodeAddNodeButton } from '../NodeAddNodeButton';
 
 export function GroupNode({ id, data, selected }: CustomNodeProps) {
   const { toggleGroup, collapsedGroups } = useGraphStore();

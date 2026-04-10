@@ -1,10 +1,11 @@
-import React, { useCallback, MouseEvent, useMemo, useEffect } from 'react';
+import { useCallback, MouseEvent, useEffect } from 'react';
 import { 
   ReactFlow, 
   Background, 
   Controls,
   addEdge,
   Node as ReactFlowNode,
+  Edge as ReactFlowEdge,
   useNodesState,
   useEdgesState,
   MarkerType
@@ -28,12 +29,12 @@ const defaultEdgeOptions = {
 };
 
 export function GraphCanvas() {
-  const { togglePanel, isPanelOpen, setSelectedNode } = useUIStore();
+  const { setSelectedNode } = useUIStore();
   const { getVisibleGraph, collapsedGroups, fullNodes, fullEdges } = useGraphStore();
   
   // Calculate visual graph boundaries natively
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<ReactFlowNode>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<ReactFlowEdge>([]);
 
   // Recalculate deterministic dagre boundaries anytime a group is structurally toggled or full items change
   useEffect(() => {
@@ -49,7 +50,7 @@ export function GraphCanvas() {
     [setEdges],
   );
 
-  const onNodeClick = useCallback((event: MouseEvent, node: ReactFlowNode) => {
+  const onNodeClick = useCallback((_event: MouseEvent, node: ReactFlowNode) => {
     setSelectedNode(node as CustomNode);
   }, [setSelectedNode]);
 
@@ -60,13 +61,6 @@ export function GraphCanvas() {
   return (
     <div className="relative flex-1 w-full h-full bg-slate-50">
       
-      <button 
-        onClick={togglePanel}
-        className="absolute top-4 right-4 z-10 px-4 py-2 bg-white rounded-md shadow border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-colors"
-      >
-        {isPanelOpen ? 'Close Panel' : 'Open Panel'}
-      </button>
-
       {/* Initialize React Flow */}
       <ReactFlow 
         nodes={nodes} 

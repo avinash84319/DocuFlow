@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 import { BaseEdge, EdgeProps, getBezierPath, EdgeLabelRenderer } from '@xyflow/react';
 import { useUIStore } from '../../store/uiStore';
 
 export function AirflowEdge({
-  id,
   sourceX,
   sourceY,
   targetX,

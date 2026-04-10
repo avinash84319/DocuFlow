@@ -1,6 +1,6 @@
-import React from 'react';
 import { GraphCanvas } from '../components/graph/GraphCanvas';
 import { RightPanel } from '../components/panels/RightPanel';
+import { BottomPanel } from '../components/panels/BottomPanel';
 import { AddNodeModal } from '../components/graph/AddNodeModal';
 import '@xyflow/react/dist/style.css';
 
@@ -18,6 +18,7 @@ function App() {
       <div className="flex flex-1 overflow-hidden relative">
         <GraphCanvas />
         <RightPanel />
+        <BottomPanel />
         <AddNodeModal />
       </div>
     </main>
